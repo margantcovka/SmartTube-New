@@ -19,7 +19,7 @@ buildscript {
         //jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.4.2'
+        classpath 'com.android.tools.build:gradle:8.13.2'
         classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:' + kotlinVersion
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -66,5 +66,11 @@ allprojects {
         //     // substitute remote dependency with local module
         //     substitute module('androidx.leanback:leanback') using project(':leanback-1.0.0')
         // }
+    }
+}
+// Kotlin 2.x targets JVM 17 by default; the modules compile Java for 1.8.
+subprojects {
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
     }
 }

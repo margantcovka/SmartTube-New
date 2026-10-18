@@ -3,10 +3,11 @@ apply plugin: 'com.android.library'
 
 task sourceJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier 'sources'
+    archiveClassifier = 'sources'
 }
 
 android {
+    namespace 'arte.programar.materialfile'
     compileSdkVersion project.properties.compileSdkVersion
     buildToolsVersion project.properties.buildToolsVersion
     defaultConfig {
