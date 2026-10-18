@@ -167,6 +167,16 @@ android {
             applicationId "org.smarttube.stable"
             targetSdkVersion project.properties.compileSdkVersion
         }
+        // Редизайн под телевизор владельца: ставится рядом с обычным SmartTube.
+        stnew {
+            applicationId "io.github.margantcovka.smarttube"
+            matchingFallbacks = ["stbeta"]
+            minSdkVersion 21
+            targetSdkVersion project.properties.compileSdkVersion
+            ndk {
+                abiFilters 'armeabi-v7a'
+            }
+        }
         stfdroid {
             applicationId "app.smarttube.fdroid"
             minSdkVersion 21
