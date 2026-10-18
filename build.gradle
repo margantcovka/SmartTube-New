@@ -21,6 +21,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.13.2'
         classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:' + kotlinVersion
+        classpath 'org.jetbrains.kotlin:compose-compiler-gradle-plugin:' + kotlinVersion
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -48,10 +49,13 @@ allprojects {
         resolutionStrategy.force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:' + kotlinVersion
         resolutionStrategy.force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:' + kotlinVersion
         resolutionStrategy.force 'org.jetbrains.kotlin:kotlin-stdlib:' + kotlinVersion
-        resolutionStrategy.force 'org.jetbrains.kotlinx:kotlinx-coroutines-android:' + kotlinxVersion
-        resolutionStrategy.force 'androidx.core:core-ktx:' + kotlinCoreXVersion
-        resolutionStrategy.force 'androidx.core:core:' + coreXVersion
-        resolutionStrategy.force 'androidx.annotation:annotation:' + annotationXVersion
+        // The stnew redesign targets Android 6+ and needs the versions Compose depends on.
+        if (!name.toLowerCase().contains('stnew')) {
+            resolutionStrategy.force 'org.jetbrains.kotlinx:kotlinx-coroutines-android:' + kotlinxVersion
+            resolutionStrategy.force 'androidx.core:core-ktx:' + kotlinCoreXVersion
+            resolutionStrategy.force 'androidx.core:core:' + coreXVersion
+            resolutionStrategy.force 'androidx.annotation:annotation:' + annotationXVersion
+        }
         // Downgrade Cronet version for cronet-okhttp
         resolutionStrategy.force 'org.chromium.net:cronet-api:' + cronetApiVersion
         resolutionStrategy.force 'androidx.multidex:multidex:' + multiDexVersion

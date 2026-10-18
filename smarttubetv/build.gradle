@@ -23,6 +23,8 @@ buildscript {
 }
 
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 
 def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
@@ -138,6 +140,10 @@ android {
         }
     }
 
+    buildFeatures {
+        compose true
+    }
+
     packagingOptions {
         // openvpn module fix: More than one file was found with OS independent path 'META-INF/com.android.tools/proguard/coroutines.pro'
         //exclude 'META-INF/com.android.tools/proguard/coroutines.pro'
@@ -172,8 +178,10 @@ android {
         stnew {
             applicationId "io.github.margantcovka.smarttube"
             matchingFallbacks = ["stbeta"]
-            minSdkVersion 21
-            targetSdkVersion project.properties.compileSdkVersion
+            minSdkVersion 23
+            targetSdkVersion 34
+            // Своя локальная сборка: release (без отладочного логгера сети) подписывается отладочным ключом.
+            signingConfig signingConfigs.debug
             ndk {
                 abiFilters 'armeabi-v7a'
             }
@@ -193,6 +201,13 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+
+    // Compose UI of the stnew redesign
+    def composeBom = platform('androidx.compose:compose-bom:2026.06.01')
+    stnewImplementation composeBom
+    stnewImplementation 'androidx.compose.ui:ui'
+    stnewImplementation 'androidx.compose.foundation:foundation'
+    stnewImplementation 'androidx.activity:activity-compose:1.11.0'
 
     implementation 'androidx.leanback:leanback:' + leanbackXVersion
     implementation 'androidx.leanback:leanback-preference:' + leanbackXVersion

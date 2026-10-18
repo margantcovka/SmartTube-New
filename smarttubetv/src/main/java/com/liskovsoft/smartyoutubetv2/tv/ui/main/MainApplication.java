@@ -1,5 +1,7 @@
 package com.liskovsoft.smartyoutubetv2.tv.ui.main;
 
+import android.app.Activity;
+import com.liskovsoft.smartyoutubetv2.tv.BuildConfig;
 import android.os.Build.VERSION;
 
 import androidx.annotation.NonNull;
@@ -103,17 +105,32 @@ public class MainApplication extends MultiDexApplication implements Configuratio
 
         Class<? extends AppDialogActivity> dialogClass = getDialogClass();
 
-        viewManager.setRoot(BrowseActivity.class);
+        // The stnew redesign replaces the home screen with a Compose activity from its own source set.
+        Class<? extends Activity> browseActivity = getBrowseActivity();
+
+        viewManager.setRoot(browseActivity);
         viewManager.register(SplashView.class, SplashActivity.class); // no parent, because it's root activity
-        viewManager.register(BrowseView.class, BrowseActivity.class); // no parent, because it's root activity
-        viewManager.register(PlaybackView.class, PlaybackActivity.class, BrowseActivity.class);
-        viewManager.register(AppDialogView.class, dialogClass, BrowseActivity.class);
-        viewManager.register(SearchView.class, SearchTagsActivity.class, BrowseActivity.class);
-        viewManager.register(SignInView.class, SignInActivity.class, BrowseActivity.class);
-        viewManager.register(AddDeviceView.class, AddDeviceActivity.class, BrowseActivity.class);
-        viewManager.register(ChannelView.class, ChannelActivity.class, BrowseActivity.class);
-        viewManager.register(ChannelUploadsView.class, ChannelUploadsActivity.class, BrowseActivity.class);
-        viewManager.register(WebBrowserView.class, WebBrowserActivity.class, BrowseActivity.class);
+        viewManager.register(BrowseView.class, browseActivity); // no parent, because it's root activity
+        viewManager.register(PlaybackView.class, PlaybackActivity.class, browseActivity);
+        viewManager.register(AppDialogView.class, dialogClass, browseActivity);
+        viewManager.register(SearchView.class, SearchTagsActivity.class, browseActivity);
+        viewManager.register(SignInView.class, SignInActivity.class, browseActivity);
+        viewManager.register(AddDeviceView.class, AddDeviceActivity.class, browseActivity);
+        viewManager.register(ChannelView.class, ChannelActivity.class, browseActivity);
+        viewManager.register(ChannelUploadsView.class, ChannelUploadsActivity.class, browseActivity);
+        viewManager.register(WebBrowserView.class, WebBrowserActivity.class, browseActivity);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Class<? extends Activity> getBrowseActivity() {
+        if ("stnew".equals(BuildConfig.FLAVOR)) {
+            try {
+                return (Class<? extends Activity>) Class.forName("io.github.margantcovka.tube.NovaBrowseActivity");
+            } catch (ClassNotFoundException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+        return BrowseActivity.class;
     }
 
     /**
