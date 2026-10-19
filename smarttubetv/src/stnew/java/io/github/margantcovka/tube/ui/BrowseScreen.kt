@@ -82,14 +82,17 @@ import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 /** Что экран сообщает наружу (в Activity, а оттуда в презентер SmartTube). */
-interface BrowseActions {
-    fun onSectionChosen(index: Int)
-    fun onSectionLongPressed(index: Int)
-    fun onSearch()
+interface VideoActions {
     fun onVideoFocused(video: Video)
     fun onVideoClicked(video: Video)
     fun onVideoLongClicked(video: Video)
     fun onNeedMore(row: VideoRow)
+}
+
+interface BrowseActions : VideoActions {
+    fun onSectionChosen(index: Int)
+    fun onSectionLongPressed(index: Int)
+    fun onSearch()
 }
 
 private const val SEARCH_TAB = -1
@@ -98,7 +101,7 @@ private val rowHeader = 28.dp + 8.dp + 10.dp
 private val gridHeader = 10.dp
 
 private val rowTitleStyle = TextStyle(color = Tokens.textPrimary, fontSize = Tokens.rowTitleSize, fontFamily = InterDisplay, fontWeight = FontWeight.SemiBold)
-private val plainStyle = TextStyle(color = Tokens.textSecondary, fontSize = Tokens.heroMetaSize, fontFamily = InterDisplay, fontWeight = FontWeight.Medium)
+internal val plainStyle = TextStyle(color = Tokens.textSecondary, fontSize = Tokens.heroMetaSize, fontFamily = InterDisplay, fontWeight = FontWeight.Medium)
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -163,7 +166,7 @@ fun BrowseScreen(state: BrowseState, actions: BrowseActions) {
                         error != null -> Message(error.message, error.actionText) { error.onAction() }
                         state.isSettings -> SettingsGrid(state.settings, firstCard)
                         state.isGrid -> VideoGrid(state, videoSpec, shortsSpec, actions, firstCard, inFirstRow) { focusedRow = it }
-                        else -> VideoRows(state, videoSpec, shortsSpec, actions, firstCard, inFirstRow) { focusedRow = it }
+                        else -> VideoRows(state.rows, state.focusedVideo, state.currentSection?.id, videoSpec, shortsSpec, actions, firstCard, inFirstRow) { focusedRow = it }
                     }
                     if (state.loading && state.isEmpty && error == null) {
                         BasicText("Загрузка…", style = plainStyle, modifier = Modifier.align(Alignment.Center))
@@ -174,7 +177,7 @@ fun BrowseScreen(state: BrowseState, actions: BrowseActions) {
     }
 }
 
-private fun cardSpecFor(density: Float, width: Dp, aspect: Float): CardSpec {
+internal fun cardSpecFor(density: Float, width: Dp, aspect: Float): CardSpec {
     val w = (width.value * density * Tokens.focusedScale).roundToInt()
     val h = (w / aspect).roundToInt()
     return Images.cardSpec(w, h, Tokens.cardCorner.value * density * Tokens.focusedScale, Tokens.shadowBlur.value * density)
@@ -243,7 +246,7 @@ private fun Tab(title: String, selected: Boolean, onFocused: () -> Unit, onClick
  * шаге фокуса съедала кадр. Пока новый текст не готов, остаётся прежний.
  */
 @Composable
-private fun Hero(video: Video?, padded: Boolean = true) {
+internal fun Hero(video: Video?, padded: Boolean = true) {
     val context = LocalContext.current
     val density = LocalDensity.current
     val widthPx = with(density) { (LocalConfiguration.current.screenWidthDp.dp - Tokens.sidePadding * 2).roundToPx() }
@@ -279,11 +282,13 @@ private fun PrefetchTexts(rows: List<VideoRow>, widthPx: Int, shortsWidthPx: Int
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
-private fun VideoRows(
-    state: BrowseState,
+internal fun VideoRows(
+    rows: List<VideoRow>,
+    focusedVideo: Video?,
+    resetKey: Any?,
     videoSpec: CardSpec,
     shortsSpec: CardSpec,
-    actions: BrowseActions,
+    actions: VideoActions,
     firstCard: FocusRequester,
     inFirstRow: Boolean,
     onRowFocused: (Int) -> Unit,
@@ -291,15 +296,14 @@ private fun VideoRows(
     // Ряд рядом с экраном собирается заранее, в паузах между нажатиями, а ушедшие вверх ряды
     // остаются собранными: переход на соседний ряд не собирает десяток карточек за один кадр.
     val listState = rememberLazyListState()
-    val section = state.currentSection?.id
-    LaunchedEffect(section) { listState.scrollToItem(0) }
+    LaunchedEffect(resetKey) { listState.scrollToItem(0) }
     val density = LocalDensity.current
     val firstRow by rememberUpdatedState(inFirstRow)
     val vertical = remember(density) {
         AnchoredSpec { if (firstRow) with(density) { (Tokens.heroHeight + rowHeader).toPx() } else with(density) { (Tokens.scrolledRowTop + rowHeader).toPx() } }
     }
     val horizontal = remember(density) { AnchoredSpec { with(density) { Tokens.sidePadding.toPx() } } }
-    PrefetchTexts(state.rows, with(density) { Tokens.cardWidth.roundToPx() }, with(density) { Tokens.shortsWidth.roundToPx() })
+    PrefetchTexts(rows, with(density) { Tokens.cardWidth.roundToPx() }, with(density) { Tokens.shortsWidth.roundToPx() })
 
     CompositionLocalProvider(LocalBringIntoViewSpec provides vertical) {
         LazyColumn(
@@ -308,8 +312,8 @@ private fun VideoRows(
             contentPadding = PaddingValues(bottom = 320.dp),
             verticalArrangement = Arrangement.spacedBy(Tokens.rowGap),
         ) {
-            item(key = "hero", contentType = "hero") { Hero(state.focusedVideo) }
-            itemsIndexed(state.rows, key = { _, row -> row.id }, contentType = { _, row -> if (row.shorts) "shorts" else "row" }) { rowIndex, row ->
+            item(key = "hero", contentType = "hero") { Hero(focusedVideo) }
+            itemsIndexed(rows, key = { _, row -> row.id }, contentType = { _, row -> if (row.shorts) "shorts" else "row" }) { rowIndex, row ->
                 val spec = if (row.shorts) shortsSpec else videoSpec
                 val width = if (row.shorts) Tokens.shortsWidth else Tokens.cardWidth
                 val aspect = if (row.shorts) 9f / 16f else 16f / 9f
@@ -447,7 +451,7 @@ private fun SettingsGrid(items: List<SettingsItem>, firstItem: FocusRequester) {
 }
 
 @Composable
-private fun Message(text: String?, action: String?, onAction: () -> Unit) {
+internal fun Message(text: String?, action: String?, onAction: () -> Unit) {
     val button = remember { FocusRequester() }
     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         BasicText(text.orEmpty(), style = plainStyle)
@@ -460,7 +464,7 @@ private fun Message(text: String?, action: String?, onAction: () -> Unit) {
 
 /** Фон всего экрана: размытая обложка видео в фокусе, смешивается на CPU в одну картинку 64×36. */
 @Composable
-private fun Backdrop(video: Video?, spec: CardSpec, visible: Boolean) {
+internal fun Backdrop(video: Video?, spec: CardSpec, visible: Boolean) {
     val context = LocalContext.current
     val renderer = remember { ShelfRenderer(Tokens.background.toArgb()) }
     val fade = remember { Animatable(1f) }

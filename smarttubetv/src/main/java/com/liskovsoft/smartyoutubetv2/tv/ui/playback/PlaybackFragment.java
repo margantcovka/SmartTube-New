@@ -125,6 +125,7 @@ public class PlaybackFragment extends SeekModePlaybackFragment implements Playba
     private Boolean mIsControlsShownPreviously;
     private Video mPendingFocus;
     private String mSelectedVideoId;
+    private long mSeekPositionMs = -1;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -301,7 +302,20 @@ public class PlaybackFragment extends SeekModePlaybackFragment implements Playba
 
     @Override
     protected void onSeekPositionChanged(long positionMs) {
+        mSeekPositionMs = positionMs;
         mPlaybackPresenter.onSeekPositionChanged(positionMs);
+    }
+
+    @Override
+    protected void onSeekFinished() {
+        mSeekPositionMs = -1;
+    }
+
+    /**
+     * Position the user is seeking to right now, or -1 when not seeking. Used by custom (stnew) overlays.
+     */
+    public long getSeekPositionMs() {
+        return mSeekPositionMs;
     }
 
     public void skipToNext() {

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- stnew: launcher-style focus. A soft light disc under the focused button instead of the Leanback ripple. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android" android:constantSize="true">
+    <item android:state_focused="true">
+        <layer-list>
+            <item>
+                <shape android:shape="oval">
+                    <solid android:color="#47FFFFFF" />
+                    <size android:width="@dimen/lb_control_button_secondary_diameter" android:height="@dimen/lb_control_button_secondary_diameter" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#00000000" />
+            <size android:width="@dimen/lb_control_button_secondary_diameter" android:height="@dimen/lb_control_button_secondary_diameter" />
+        </shape>
+    </item>
+</selector>

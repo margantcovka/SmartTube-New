@@ -111,12 +111,12 @@ public class MainApplication extends MultiDexApplication implements Configuratio
         viewManager.setRoot(browseActivity);
         viewManager.register(SplashView.class, SplashActivity.class); // no parent, because it's root activity
         viewManager.register(BrowseView.class, browseActivity); // no parent, because it's root activity
-        viewManager.register(PlaybackView.class, PlaybackActivity.class, browseActivity);
+        viewManager.register(PlaybackView.class, getStnewActivity("NovaPlaybackActivity", PlaybackActivity.class), browseActivity);
         viewManager.register(AppDialogView.class, dialogClass, browseActivity);
         viewManager.register(SearchView.class, SearchTagsActivity.class, browseActivity);
         viewManager.register(SignInView.class, SignInActivity.class, browseActivity);
         viewManager.register(AddDeviceView.class, AddDeviceActivity.class, browseActivity);
-        viewManager.register(ChannelView.class, ChannelActivity.class, browseActivity);
+        viewManager.register(ChannelView.class, getStnewActivity("NovaChannelActivity", ChannelActivity.class), browseActivity);
         viewManager.register(ChannelUploadsView.class, ChannelUploadsActivity.class, browseActivity);
         viewManager.register(WebBrowserView.class, WebBrowserActivity.class, browseActivity);
     }
@@ -131,6 +131,18 @@ public class MainApplication extends MultiDexApplication implements Configuratio
             }
         }
         return BrowseActivity.class;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Class<? extends Activity> getStnewActivity(String name, Class<? extends Activity> original) {
+        if ("stnew".equals(BuildConfig.FLAVOR)) {
+            try {
+                return (Class<? extends Activity>) Class.forName("io.github.margantcovka.tube." + name);
+            } catch (ClassNotFoundException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+        return original;
     }
 
     /**

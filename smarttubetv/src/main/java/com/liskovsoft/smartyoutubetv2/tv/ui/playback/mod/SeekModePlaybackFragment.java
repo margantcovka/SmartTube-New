@@ -67,10 +67,13 @@ public class SeekModePlaybackFragment extends EventsOverridePlaybackFragment {
                 mSeekUiClient2.onSeekFinished(cancelled);
             }
             setSeekMode(false);
+            SeekModePlaybackFragment.this.onSeekFinished();
         }
     };
 
     protected void onSeekPositionChanged(long positionMs) {}
+
+    protected void onSeekFinished() {}
 
     /**
      * NOTE: MOD version. Removed part: hiding rows.<br/>
