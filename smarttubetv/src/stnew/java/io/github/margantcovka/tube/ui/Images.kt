@@ -106,8 +106,8 @@ object Images {
         val canvas = Canvas(bmp)
         val unit = spec.heightPx / 120f // 1 dp при фокусном масштабе для обложки 16:9 высотой ~120 dp
         val label = when {
-            video.isLive -> "В ЭФИРЕ"
-            video.isUpcoming -> "СКОРО"
+            video.isLive -> context.getString(R.string.nova_live)
+            video.isUpcoming -> context.getString(R.string.nova_upcoming)
             else -> video.badge?.takeIf { it.isNotBlank() }
         }
         if (label != null) {

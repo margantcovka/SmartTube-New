@@ -1,5 +1,7 @@
 package io.github.margantcovka.tube.ui
 
+import com.liskovsoft.smartyoutubetv2.tv.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -169,7 +171,7 @@ fun BrowseScreen(state: BrowseState, actions: BrowseActions) {
                         else -> VideoRows(state.rows, state.focusedVideo, state.currentSection?.id, videoSpec, shortsSpec, actions, firstCard, inFirstRow) { focusedRow = it }
                     }
                     if (state.loading && state.isEmpty && error == null) {
-                        BasicText("Загрузка…", style = plainStyle, modifier = Modifier.align(Alignment.Center))
+                        BasicText(stringResource(R.string.nova_loading), style = plainStyle, modifier = Modifier.align(Alignment.Center))
                     }
                 }
             }
@@ -198,7 +200,7 @@ private fun TopBar(state: BrowseState, actions: BrowseActions, tabRequester: (In
     ) {
         items(tabs.size) { i ->
             val index = tabs[i]
-            val title = if (index == SEARCH_TAB) "Поиск" else state.sections[index].title.orEmpty()
+            val title = if (index == SEARCH_TAB) stringResource(R.string.nova_search) else state.sections[index].title.orEmpty()
             Tab(
                 title = title,
                 selected = index == state.selected,

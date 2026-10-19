@@ -1,5 +1,7 @@
 package io.github.margantcovka.tube.ui
 
+import com.liskovsoft.smartyoutubetv2.tv.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,7 +56,7 @@ fun ChannelScreen(state: ChannelState, actions: VideoActions) {
                 Box(Modifier.fillMaxWidth().weight(1f)) {
                     VideoRows(state.rows, state.focusedVideo, null, videoSpec, shortsSpec, actions, firstCard, focusedRow == 0) { focusedRow = it }
                     if (state.loading && state.isEmpty) {
-                        BasicText("Загрузка…", style = plainStyle, modifier = Modifier.align(Alignment.Center))
+                        BasicText(stringResource(R.string.nova_loading), style = plainStyle, modifier = Modifier.align(Alignment.Center))
                     }
                 }
             }

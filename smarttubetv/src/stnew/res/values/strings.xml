@@ -2,4 +2,8 @@
 <resources>
     <string translatable="false" name="app_name"><![CDATA[SmartTube New]]></string>
     <string translatable="false" name="browse_title"><![CDATA[SmartTube New]]></string>
+    <string name="nova_live">LIVE</string>
+    <string name="nova_upcoming">UPCOMING</string>
+    <string name="nova_loading">Loading…</string>
+    <string name="nova_search">Search</string>
 </resources>
