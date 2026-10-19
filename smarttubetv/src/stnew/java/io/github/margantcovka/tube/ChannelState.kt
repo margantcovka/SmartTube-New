@@ -28,12 +28,12 @@ class ChannelState {
         when {
             existing == null -> {
                 val created = VideoRow(group.id, group.title, group.isShorts)
-                created.videos.addAll(group.videos)
+                created.add(group.videos)
                 val at = group.position
                 if (at < 0 || at > rows.size) rows.add(created) else rows.add(at, created)
             }
-            group.action == VideoGroup.ACTION_PREPEND -> existing.videos.addAll(0, group.videos)
-            else -> existing.videos.addAll(group.videos)
+            group.action == VideoGroup.ACTION_PREPEND -> existing.add(group.videos, atStart = true)
+            else -> existing.add(group.videos)
         }
     }
 }

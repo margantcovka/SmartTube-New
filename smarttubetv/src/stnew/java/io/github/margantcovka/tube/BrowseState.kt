@@ -15,11 +15,32 @@ import com.liskovsoft.smartyoutubetv2.common.app.models.errors.ErrorFragmentData
 class VideoRow(val id: Int, title: String?, val shorts: Boolean) {
     var title by mutableStateOf(title)
     val videos = mutableStateListOf<Video>()
+    private val keys = HashSet<String>()
     /** Размер, при котором уже попросили следующую страницу: не просить дважды. */
     var requestedMoreAt = -1
 
+    /**
+     * Добавляет только новые видео: YouTube в продолжении ленты часто присылает уже показанные,
+     * а старый экран отсеивал их (VideoGroupObjectAdapter). Video.equals тяжёлый, поэтому ключи.
+     */
+    fun add(items: List<Video>?, atStart: Boolean = false) {
+        val fresh = items.orEmpty().filter { keys.add(keyOf(it)) }
+        // Страница из одних повторов: разрешаем попросить следующую при следующем шаге фокуса.
+        if (fresh.isEmpty()) requestedMoreAt = -1
+        if (atStart) videos.addAll(0, fresh) else videos.addAll(fresh)
+    }
+
+    /** После удаления и замены ключи пересчитываются. */
+    fun rekey() {
+        keys.clear()
+        videos.forEach { keys.add(keyOf(it)) }
+    }
+
     companion object {
         const val GRID_ROW = Int.MIN_VALUE
+
+        private fun keyOf(v: Video): String =
+            v.videoId ?: v.playlistId ?: v.channelId ?: v.title ?: System.identityHashCode(v).toString()
     }
 }
 
@@ -68,12 +89,12 @@ class BrowseState {
             VideoGroup.ACTION_REPLACE -> if (grid || group.position == -1) rows.clear() else rows.removeAll { it.id == rowId }
             VideoGroup.ACTION_REMOVE -> {
                 val gone = group.videos.orEmpty()
-                row()?.videos?.removeAll { v -> gone.any { it == v } }
+                row()?.let { r -> r.videos.removeAll { v -> gone.any { it == v } }; r.rekey() }
                 return
             }
             VideoGroup.ACTION_REMOVE_AUTHOR -> {
                 val channels = group.videos.orEmpty().mapNotNull { it.channelId }.toSet()
-                rows.forEach { r -> r.videos.removeAll { it.channelId in channels } }
+                rows.forEach { r -> r.videos.removeAll { it.channelId in channels }; r.rekey() }
                 return
             }
             VideoGroup.ACTION_SYNC -> {
@@ -91,13 +112,13 @@ class BrowseState {
         val existing = row()
         if (existing == null) {
             val created = VideoRow(rowId, if (grid) null else group.title, group.isShorts || currentSection?.type == BrowseSection.TYPE_SHORTS_GRID)
-            created.videos.addAll(group.videos)
+            created.add(group.videos)
             val at = group.position
             if (at < 0 || at > rows.size) rows.add(created) else rows.add(at, created)
         } else if (group.action == VideoGroup.ACTION_PREPEND) {
-            existing.videos.addAll(0, group.videos)
+            existing.add(group.videos, atStart = true)
         } else {
-            existing.videos.addAll(group.videos)
+            existing.add(group.videos)
         }
     }
 }
